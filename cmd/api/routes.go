@@ -27,7 +27,7 @@ func (app *application) routes() *httprouter.Router {
 		app.showMovieHandler)
 
 	router.HandlerFunc(
-		http.MethodPut,
+		http.MethodPatch,
 		"/v1/movies/:id",
 		app.updateMovieHandler)
 
