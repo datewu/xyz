@@ -54,9 +54,9 @@ func Unique(values []string) bool {
 	seen := make(map[string]struct{})
 	for _, v := range values {
 		if _, exists := seen[v]; exists {
-			return true
+			return false
 		}
 		seen[v] = struct{}{}
 	}
-	return false
+	return true
 }

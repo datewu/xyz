@@ -26,5 +26,14 @@ func (app *application) routes() *httprouter.Router {
 		"/v1/movies/:id",
 		app.showMovieHandler)
 
+	router.HandlerFunc(
+		http.MethodPut,
+		"/v1/movies/:id",
+		app.updateMovieHandler)
+
+	router.HandlerFunc(
+		http.MethodDelete,
+		"/v1/movies/:id",
+		app.deleteMovieHandler)
 	return router
 }
