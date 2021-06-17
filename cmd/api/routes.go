@@ -17,6 +17,11 @@ func (app *application) routes() *httprouter.Router {
 		app.healthCheckHandler)
 
 	router.HandlerFunc(
+		http.MethodGet,
+		"/v1/movies",
+		app.listMovieHandler)
+
+	router.HandlerFunc(
 		http.MethodPost,
 		"/v1/movies",
 		app.createMovieHandler)
