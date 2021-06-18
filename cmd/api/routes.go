@@ -40,6 +40,7 @@ func (app *application) routes() http.Handler {
 		http.MethodDelete,
 		"/v1/movies/:id",
 		app.deleteMovieHandler)
-	rp := app.recoverPanic(router)
+	rl := app.rateLimit(router)
+	rp := app.recoverPanic(rl)
 	return rp
 }
