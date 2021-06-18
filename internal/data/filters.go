@@ -1,6 +1,7 @@
 package data
 
 import (
+	"math"
 	"strings"
 
 	"github.com/datewu/xyz/internal/validator"
@@ -46,4 +47,25 @@ func ValidateFilters(v *validator.Validator, f Filters) {
 
 	// Check that the sort parameter matches a value in the safelist.
 	v.Check(validator.In(f.Sort, f.SortSafelist...), "sort", "invalid sort value")
+}
+
+type Metadata struct {
+	CurrentPage  int `json:"current_page,omitempty"`
+	PageSize     int `json:"page_size,omitempty"`
+	FirstPage    int `json:"first_page,omitempty"`
+	LastPage     int `json:"last_page,omitempty"`
+	TotalRecords int `json:"total_records,omitempty"`
+}
+
+func calculateMetadata(total, page, pageSize int) Metadata {
+	if total == 0 {
+		return Metadata{}
+	}
+	return Metadata{
+		CurrentPage:  page,
+		PageSize:     pageSize,
+		FirstPage:    1,
+		LastPage:     int(math.Ceil(float64(total) / float64(pageSize))),
+		TotalRecords: total,
+	}
 }
