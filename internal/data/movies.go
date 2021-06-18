@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/datewu/xyz/internal/validator"
@@ -143,12 +144,12 @@ func (m MovieModel) Delete(id int64) error {
 }
 
 func (m MovieModel) GetAll(title string, genres []string, filter Filters) ([]*Movie, error) {
-	query := `
+	query := fmt.Sprintf(`
         SELECT id, created_at, title, year, runtime, genres, version
 		FROM movies
 		WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 		AND (genres @> $2 OR $2= '{}')
-		ORDER BY id`
+		ORDER BY %s %s, id ASC`, filter.sortColumn(), filter.sortDirection())
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	rows, err := m.DB.QueryContext(ctx, query, title, pq.Array(genres))
