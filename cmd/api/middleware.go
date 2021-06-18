@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"net/http"
+	"sync"
+	"time"
 
 	"golang.org/x/time/rate"
 )
@@ -21,14 +24,45 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 }
 
 func (app *application) rateLimit(next http.Handler) http.Handler {
-	// initialize a gloabl rate limiter which allow an average of 20 request per second,
-	// with a maximun of 25 requests in a single 'burst'
-	globalLimiter := rate.NewLimiter(20, 25)
+	type client struct {
+		limiter  *rate.Limiter
+		lastSeen time.Time
+	}
+	var (
+		clients = make(map[string]*client)
+		mu      sync.Mutex
+	)
+	delOld := func(interval time.Duration) {
+		for {
+			time.Sleep(interval)
+			mu.Lock()
+			for k, v := range clients {
+				if time.Since(v.lastSeen) > 3*time.Minute {
+					delete(clients, k)
+				}
+			}
+			mu.Unlock()
+		}
+	}
+	go delOld(time.Minute)
+
 	middle := func(w http.ResponseWriter, r *http.Request) {
-		if !globalLimiter.Allow() {
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			app.serverErrResponse(w, r, err)
+			return
+		}
+		mu.Lock()
+		if _, existed := clients[ip]; !existed {
+			clients[ip] = &client{limiter: rate.NewLimiter(2, 4)}
+		}
+		clients[ip].lastSeen = time.Now()
+		if !clients[ip].limiter.Allow() {
+			mu.Unlock()
 			app.rateLimitExceededResponse(w, r)
 			return
 		}
+		mu.Unlock()
 		next.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(middle)
