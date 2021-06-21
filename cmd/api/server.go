@@ -33,7 +33,13 @@ func (app *application) serve() error {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		shutdownErr <- srv.Shutdown(ctx)
+		err := srv.Shutdown(ctx)
+		if err != nil {
+			shutdownErr <- err
+		}
+		app.logger.PrintInfo("completing background tasks", nil)
+		app.wg.Wait()
+		shutdownErr <- nil
 	}
 	go bgSignal()
 	app.logger.PrintInfo("starting server", map[string]string{

@@ -115,3 +115,17 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 	}
 	return i
 }
+
+func (app *application) background(fn func()) {
+	rcv := func() {
+		if r := recover(); r != nil {
+			app.logger.PrintErr(fmt.Errorf("%s", r), nil)
+		}
+	}
+	app.wg.Add(1)
+	go func() {
+		defer app.wg.Done()
+		defer rcv()
+		fn()
+	}()
+}
