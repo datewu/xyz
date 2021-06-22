@@ -16,6 +16,9 @@ var (
 	ErrDuplicateEmail = errors.New("duplicate email")
 )
 
+// AnonymousUser ...
+var AnonymousUser = &User{}
+
 // User ...
 type User struct {
 	ID        int64     `json:"id"`
@@ -25,6 +28,10 @@ type User struct {
 	Password  password  `json:"-"`
 	Activated bool      `json:"activated"`
 	Version   int       `json:"-"`
+}
+
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
 }
 
 type password struct {
@@ -117,7 +124,7 @@ func (u UserModel) GetByEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	err := u.DB.QueryRowContext(ctx, query, email).
-		Scan(&user.ID, &user.CreatedAt, &user.Name,
+		Scan(&user.ID, &user.CreatedAt, &user.Name, &user.Email,
 			&user.Password.hash, &user.Activated, &user.Version)
 	if err != nil {
 		switch {
