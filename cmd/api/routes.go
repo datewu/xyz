@@ -46,6 +46,11 @@ func (app *application) routes() http.Handler {
 		"/v1/users",
 		app.registerUserHandler)
 
+	router.HandlerFunc(
+		http.MethodPut,
+		"/v1/users/activated",
+		app.activateUserHandler)
+
 	rl := app.rateLimit(router)
 	rp := app.recoverPanic(rl)
 	return rp
