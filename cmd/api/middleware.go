@@ -14,6 +14,46 @@ import (
 	"golang.org/x/time/rate"
 )
 
+func (app *application) enabledCORS(next http.Handler) http.Handler {
+	if len(app.config.cors.trustedOrigins) == 0 {
+		return next
+	}
+	app.logger.PrintInfo("enable cors middler", nil)
+	middle := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Vary", "Origin")
+
+		// Add the "Vary: Access-Control-Request-Method" header.
+		w.Header().Add("Vary", "Access-Control-Request-Method")
+
+		origin := r.Header.Get("Origin")
+
+		if origin != "" && len(app.config.cors.trustedOrigins) != 0 {
+			for i := range app.config.cors.trustedOrigins {
+				if origin == app.config.cors.trustedOrigins[i] {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+
+					// Check if the request has the HTTP method OPTIONS and contains the
+					// "Access-Control-Request-Method" header. If it does, then we treat
+					// it as a preflight request.
+					if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
+						// Set the necessary preflight response headers, as discussed
+						// previously.
+						w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, PUT, PATCH, DELETE")
+						w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+
+						// Write the headers along with a 200 OK status and return from
+						// the middleware with no further action.
+						w.WriteHeader(http.StatusOK)
+						return
+					}
+				}
+			}
+		}
+		next.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(middle)
+}
+
 func (app *application) recoverPanic(next http.Handler) http.Handler {
 	middle := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -31,6 +71,7 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 	if !app.config.limiter.enabled {
 		return next
 	}
+	app.logger.PrintInfo("enable ratelimit middler", nil)
 	type client struct {
 		limiter  *rate.Limiter
 		lastSeen time.Time

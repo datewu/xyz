@@ -55,8 +55,9 @@ func (app *application) routes() http.Handler {
 		http.MethodPost,
 		"/v1/tokens/authentication",
 		app.createAuthenticationTokenHandler)
-	au := app.authenticate(router)
-	rl := app.rateLimit(au)
-	rp := app.recoverPanic(rl)
-	return rp
+	auMiddle := app.authenticate(router)
+	rlMiddle := app.rateLimit(auMiddle)
+	corsMiddle := app.enabledCORS(rlMiddle)
+	recoverMiddle := app.recoverPanic(corsMiddle)
+	return recoverMiddle
 }
