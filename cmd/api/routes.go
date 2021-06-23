@@ -19,27 +19,27 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(
 		http.MethodGet,
 		"/v1/movies",
-		app.listMovieHandler)
+		app.requireActivatedUser(app.listMovieHandler))
 
 	router.HandlerFunc(
 		http.MethodPost,
 		"/v1/movies",
-		app.createMovieHandler)
+		app.requireActivatedUser(app.createMovieHandler))
 
 	router.HandlerFunc(
 		http.MethodGet,
 		"/v1/movies/:id",
-		app.showMovieHandler)
+		app.requireActivatedUser(app.showMovieHandler))
 
 	router.HandlerFunc(
 		http.MethodPatch,
 		"/v1/movies/:id",
-		app.updateMovieHandler)
+		app.requireActivatedUser(app.updateMovieHandler))
 
 	router.HandlerFunc(
 		http.MethodDelete,
 		"/v1/movies/:id",
-		app.deleteMovieHandler)
+		app.requireActivatedUser(app.deleteMovieHandler))
 
 	router.HandlerFunc(
 		http.MethodPost,
