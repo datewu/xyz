@@ -14,6 +14,7 @@ import (
 const (
 	ScopeActivation     = "activation"
 	ScopeAuthentication = "authentication"
+	ScopePwdReset       = "password-reset"
 )
 
 // Token ...
