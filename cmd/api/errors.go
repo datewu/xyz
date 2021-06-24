@@ -6,77 +6,80 @@ import (
 )
 
 func (app *application) logError(r *http.Request, err error) {
-	app.logger.PrintErr(err, map[string]string{
+	app.logger.PrintError(err, map[string]string{
 		"request_method": r.Method,
 		"request_url":    r.URL.String(),
 	})
 }
 
-func (app *application) errResponse(w http.ResponseWriter, r *http.Request, status int, msg interface{}) {
-	data := envelope{"error": msg}
-	err := app.writeJSON(w, status, data, nil)
+func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message interface{}) {
+	env := envelope{"error": message}
+
+	err := app.writeJSON(w, status, env, nil)
 	if err != nil {
 		app.logError(r, err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(500)
 	}
 }
 
-func (app *application) serverErrResponse(w http.ResponseWriter,
-	r *http.Request, err error) {
+func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
-	msg := "the server encountered a problem and could not process your request"
-	app.errResponse(w, r, http.StatusInternalServerError, msg)
+
+	message := "the server encountered a problem and could not process your request"
+	app.errorResponse(w, r, http.StatusInternalServerError, message)
 }
 
-func (app *application) notFountResponse(w http.ResponseWriter, r *http.Request) {
-	msg := "the requested resource could not be found"
-	app.errResponse(w, r, http.StatusNotFound, msg)
+func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request) {
+	message := "the requested resource could not be found"
+	app.errorResponse(w, r, http.StatusNotFound, message)
 }
 
-func (app *application) methodNotAllowResponse(w http.ResponseWriter, r *http.Request) {
-	msg := fmt.Sprintf("the %s mehtod is not supported for this resource", r.Method)
-	app.errResponse(w, r, http.StatusMethodNotAllowed, msg)
+func (app *application) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
+	message := fmt.Sprintf("the %s method is not supported for this resource", r.Method)
+	app.errorResponse(w, r, http.StatusMethodNotAllowed, message)
 }
 
 func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
-	app.errResponse(w, r, http.StatusBadRequest, err.Error())
+	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
 }
 
-func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errs map[string]string) {
-	app.errResponse(w, r, http.StatusUnprocessableEntity, errs)
+func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
+	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
 }
 
 func (app *application) editConflictResponse(w http.ResponseWriter, r *http.Request) {
-	msg := "unable to update the record due to an edit conflict, please try later"
-	app.errResponse(w, r, http.StatusConflict, msg)
+	message := "unable to update the record due to an edit conflict, please try again"
+	app.errorResponse(w, r, http.StatusConflict, message)
 }
 
 func (app *application) rateLimitExceededResponse(w http.ResponseWriter, r *http.Request) {
-	msg := "rate limit exceeded"
-	app.errResponse(w, r, http.StatusTooManyRequests, msg)
+	message := "rate limit exceeded"
+	app.errorResponse(w, r, http.StatusTooManyRequests, message)
 }
 
 func (app *application) invalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
-	msg := "invalid authentication credentials"
-	app.errResponse(w, r, http.StatusBadRequest, msg)
+	message := "invalid authentication credentials"
+	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }
 
 func (app *application) invalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
-	msg := "invalid or missing authentication token"
-	app.errResponse(w, r, http.StatusBadRequest, msg)
+	w.Header().Set("WWW-Authenticate", "Bearer")
+
+	message := "invalid or missing authentication token"
+	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }
 
-func (app *application) authenticationRequireResponse(w http.ResponseWriter, r *http.Request) {
-	msg := "you must be authenticated to access this resource"
-	app.errResponse(w, r, http.StatusUnauthorized, msg)
+func (app *application) authenticationRequiredResponse(w http.ResponseWriter, r *http.Request) {
+	message := "you must be authenticated to access this resource"
+	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }
 
 func (app *application) inactiveAccountResponse(w http.ResponseWriter, r *http.Request) {
-	msg := "your user account must be activated to access this resource"
-	app.errResponse(w, r, http.StatusForbidden, msg)
+	message := "your user account must be activated to access this resource"
+	app.errorResponse(w, r, http.StatusForbidden, message)
 }
 
 func (app *application) notPermittedResponse(w http.ResponseWriter, r *http.Request) {
-	msg := "your user account doesn't have the necessary permissions to access this resource"
-	app.errResponse(w, r, http.StatusForbidden, msg)
+	message := "your user account doesn't have the necessary permissions to access this resource"
+	app.errorResponse(w, r, http.StatusForbidden, message)
 }

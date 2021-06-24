@@ -8,16 +8,15 @@ import (
 	"encoding/base32"
 	"time"
 
-	"github.com/datewu/xyz/internal/validator"
+	"greenlight.alexedwards.net/internal/validator"
 )
 
 const (
 	ScopeActivation     = "activation"
 	ScopeAuthentication = "authentication"
-	ScopePwdReset       = "password-reset"
+	ScopePasswordReset  = "password-reset"
 )
 
-// Token ...
 type Token struct {
 	Plaintext string    `json:"token"`
 	Hash      []byte    `json:"-"`
@@ -26,51 +25,54 @@ type Token struct {
 	Scope     string    `json:"-"`
 }
 
-func generateToekn(userID int64, ttl time.Duration, scope string) (*Token, error) {
+func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error) {
 	token := &Token{
 		UserID: userID,
 		Expiry: time.Now().Add(ttl),
 		Scope:  scope,
 	}
+
 	randomBytes := make([]byte, 16)
+
 	_, err := rand.Read(randomBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	token.Plaintext = base32.StdEncoding.WithPadding(base32.NoPadding).
-		EncodeToString(randomBytes)
+	token.Plaintext = base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(randomBytes)
+
 	hash := sha256.Sum256([]byte(token.Plaintext))
 	token.Hash = hash[:]
+
 	return token, nil
 }
 
-func ValidateTokenPlaintext(v *validator.Validator, text string) {
-	v.Check(text != "", "token", "must be provided")
-	v.Check(len(text) == 26, "token", "must be 26 bytes long")
+func ValidateTokenPlaintext(v *validator.Validator, tokenPlaintext string) {
+	v.Check(tokenPlaintext != "", "token", "must be provided")
+	v.Check(len(tokenPlaintext) == 26, "token", "must be 26 bytes long")
 }
 
-// TokenModel ...
 type TokenModel struct {
 	DB *sql.DB
 }
 
 func (m TokenModel) New(userID int64, ttl time.Duration, scope string) (*Token, error) {
-	token, err := generateToekn(userID, ttl, scope)
+	token, err := generateToken(userID, ttl, scope)
 	if err != nil {
 		return nil, err
 	}
+
 	err = m.Insert(token)
 	return token, err
 }
 
 func (m TokenModel) Insert(token *Token) error {
 	query := `
-	    INSERT INTO tokens (hash, user_id, expiry, scope)
-		VALUES ($1, $2, $3, $4)`
-	args := []interface{}{
-		token.Hash, token.UserID,
-		token.Expiry, token.Scope}
+        INSERT INTO tokens (hash, user_id, expiry, scope) 
+        VALUES ($1, $2, $3, $4)`
+
+	args := []interface{}{token.Hash, token.UserID, token.Expiry, token.Scope}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -80,8 +82,9 @@ func (m TokenModel) Insert(token *Token) error {
 
 func (m TokenModel) DeleteAllForUser(scope string, userID int64) error {
 	query := `
-	    DELETE FROM tokens
-		WHERE scope = $1 AND user_id = $2`
+        DELETE FROM tokens 
+        WHERE scope = $1 AND user_id = $2`
+
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 

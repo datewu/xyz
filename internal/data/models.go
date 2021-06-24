@@ -10,20 +10,18 @@ var (
 	ErrEditConflict   = errors.New("edit conflict")
 )
 
-// Models wraps *Model
 type Models struct {
 	Movies      MovieModel
-	Users       UserModel
-	Tokens      TokenModel
 	Permissions PermissionModel
+	Tokens      TokenModel
+	Users       UserModel
 }
 
-// NewModels  initialize *Models
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Movies:      MovieModel{DB: db},
-		Users:       UserModel{DB: db},
-		Tokens:      TokenModel{DB: db},
 		Permissions: PermissionModel{DB: db},
+		Tokens:      TokenModel{DB: db},
+		Users:       UserModel{DB: db},
 	}
 }

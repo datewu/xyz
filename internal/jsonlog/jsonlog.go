@@ -18,7 +18,6 @@ const (
 	LevelOff
 )
 
-// String ...
 func (l Level) String() string {
 	switch l {
 	case LevelInfo:
@@ -32,16 +31,12 @@ func (l Level) String() string {
 	}
 }
 
-// Logger holds the output destination that the log entries
-// will be written to, the minimum severity level that log
-// entries will be written for, and a mutex for writes.
 type Logger struct {
 	out      io.Writer
 	minLevel Level
 	mu       sync.Mutex
 }
 
-// New create a new Logger
 func New(out io.Writer, minLevel Level) *Logger {
 	return &Logger{
 		out:      out,
@@ -49,23 +44,24 @@ func New(out io.Writer, minLevel Level) *Logger {
 	}
 }
 
-func (l *Logger) PrintInfo(msg string, props map[string]string) {
-	l.print(LevelInfo, msg, props)
+func (l *Logger) PrintInfo(message string, properties map[string]string) {
+	l.print(LevelInfo, message, properties)
 }
 
-func (l *Logger) PrintErr(err error, props map[string]string) {
-	l.print(LevelError, err.Error(), props)
+func (l *Logger) PrintError(err error, properties map[string]string) {
+	l.print(LevelError, err.Error(), properties)
 }
 
-func (l *Logger) PrintFatal(err error, props map[string]string) {
-	l.print(LevelFatal, err.Error(), props)
+func (l *Logger) PrintFatal(err error, properties map[string]string) {
+	l.print(LevelFatal, err.Error(), properties)
 	os.Exit(1)
 }
 
-func (l *Logger) print(level Level, msg string, props map[string]string) (int, error) {
+func (l *Logger) print(level Level, message string, properties map[string]string) (int, error) {
 	if level < l.minLevel {
 		return 0, nil
 	}
+
 	aux := struct {
 		Level      string            `json:"level"`
 		Time       string            `json:"time"`
@@ -75,23 +71,27 @@ func (l *Logger) print(level Level, msg string, props map[string]string) (int, e
 	}{
 		Level:      level.String(),
 		Time:       time.Now().UTC().Format(time.RFC3339),
-		Message:    msg,
-		Properties: props,
+		Message:    message,
+		Properties: properties,
 	}
 
 	if level >= LevelError {
 		aux.Trace = string(debug.Stack())
 	}
+
 	var line []byte
+
 	line, err := json.Marshal(aux)
 	if err != nil {
 		line = []byte(LevelError.String() + ": unable to marshal log message:" + err.Error())
 	}
+
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
 	return l.out.Write(append(line, '\n'))
 }
 
-func (l *Logger) Write(msg []byte) (int, error) {
-	return l.print(LevelError, string(msg), nil)
+func (l *Logger) Write(message []byte) (n int, err error) {
+	return l.print(LevelError, string(message), nil)
 }
