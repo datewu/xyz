@@ -1,3 +1,11 @@
+github.com/datewu/gtea v0.0.3 h1:Q/u/pCmdwIWVpa4wP5F0my57Uv1ecUlo5UOaC2jAbgc=
+github.com/datewu/gtea v0.0.3/go.mod h1:tfeuFjjhecqVwU1wBMzmwnuR4UsbbyczgtUvvXCkmoU=
+github.com/datewu/jsonlog v0.0.1 h1:SDUyAJutAhzsTCeiDcKkTPx4Ob+NFzETvrViA4G4ie8=
+github.com/datewu/jsonlog v0.0.1/go.mod h1:f66gWawYjX0SUAFbqY0K40QL6z6EymaxIUpU+3TOrDI=
+github.com/datewu/toushi v0.0.3 h1:+TdEjLx988+giX8i63p38xez6JOc6dU+4vE0WUPmc1U=
+github.com/datewu/toushi v0.0.3/go.mod h1:ACTON5kzkSUETX9kyl4LsTw8fw3uPbgIIPE17RVTUM0=
+github.com/datewu/validator v0.0.1 h1:nOQs4CroGXlv8nEBmHmPL8cRS43Q1w8TcmyfnxPCmEk=
+github.com/datewu/validator v0.0.1/go.mod h1:1Anfo7XwmSdxUS1qlMlbB43Kgvy+PBj3iz38qfEDuNc=
 github.com/go-mail/mail/v2 v2.3.0 h1:wha99yf2v3cpUzD1V9ujP404Jbw2uEvs+rBJybkdYcw=
 github.com/go-mail/mail/v2 v2.3.0/go.mod h1:oE2UK8qebZAjjV1ZYUpY7FPnbi/kIU53l1dmqPRb4go=
 github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=
@@ -11,8 +19,10 @@ golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
-golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6 h1:Vv0JUPWTyeqUq42B2WJ1FeIDjjvGKoA2Ss+Ts0lAVbs=
-golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
+golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac h1:7zkz7BUtwNFFqcowJ+RIgu2MaV/MapERkDIy+mwPyjs=
+golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
 golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
 gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc h1:2gGKlE2+asNV9m7xrywl36YYNnBG5ZQ0r/BOOxqPpmk=
 gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc/go.mod h1:m7x9LTH6d71AHyAX77c9yqWCCa3UKHcVEj9y7hAtKDk=
+gopkg.in/mail.v2 v2.3.1 h1:WYFn/oANrAGP2C0dcV6/pbkPzv8yGzqTjPmTeO7qoXk=
+gopkg.in/mail.v2 v2.3.1/go.mod h1:htwXN1Qh09vZJ1NVKxQqHPBaCBbzKhp5GzuJEA4VJWw=

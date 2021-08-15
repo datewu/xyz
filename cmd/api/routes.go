@@ -1,86 +1,49 @@
 package main
 
 import (
-	"expvar"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
+	"github.com/datewu/toushi"
 )
 
-func (app *application) routes() http.Handler {
-	router := httprouter.New()
-	router.NotFound = http.HandlerFunc(app.notFountResponse)
-	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowResponse)
+func setRoutes() http.Handler {
+	r := toushi.New(nil)
+	customRoutes(r)
+	return r.Routes(authenticate)
+}
 
-	router.HandlerFunc(
-		http.MethodGet,
-		"/v1/healthcheck",
-		app.healthCheckHandler)
+func customRoutes(r *toushi.Router) {
 
-	router.HandlerFunc(
-		http.MethodGet,
-		"/v1/movies",
-		app.requirePermission("movies:read", app.listMovieHandler))
+	r.Get("/v1/movies",
+		requirePermission("movies:read", listMovieHandler))
 
-	router.HandlerFunc(
-		http.MethodPost,
-		"/v1/movies",
-		app.requirePermission("movies:write", app.createMovieHandler))
+	r.Post("/v1/movies",
+		requirePermission("movies:write", createMovieHandler))
 
-	router.HandlerFunc(
-		http.MethodGet,
-		"/v1/movies/:id",
-		app.requirePermission("movies:read", app.showMovieHandler))
+	r.Get("/v1/movies/:id",
+		requirePermission("movies:read", showMovieHandler))
 
-	router.HandlerFunc(
-		http.MethodPatch,
-		"/v1/movies/:id",
-		app.requirePermission("movies:write", app.updateMovieHandler))
+	r.Patch("/v1/movies/:id",
+		requirePermission("movies:write", updateMovieHandler))
 
-	router.HandlerFunc(
-		http.MethodDelete,
-		"/v1/movies/:id",
-		app.requirePermission("movies:write", app.deleteMovieHandler))
+	r.Delete("/v1/movies/:id",
+		requirePermission("movies:write", deleteMovieHandler))
 
-	router.HandlerFunc(
-		http.MethodPost,
-		"/v1/users",
-		app.registerUserHandler)
+	r.Post("/v1/users",
+		registerUserHandler)
 
-	router.HandlerFunc(
-		http.MethodPut,
-		"/v1/users/activated",
-		app.activateUserHandler)
+	r.Put("/v1/users/activated",
+		activateUserHandler)
 
-	router.HandlerFunc(
-		http.MethodPut,
-		"/v1/users/password",
-		app.updateUserPasswordHandler)
+	r.Put("/v1/users/password",
+		updateUserPasswordHandler)
 
-	router.HandlerFunc(
-		http.MethodPost,
-		"/v1/tokens/authentication",
-		app.createAuthenticationTokenHandler)
+	r.Post("/v1/tokens/authentication",
+		createAuthenticationTokenHandler)
 
-	router.HandlerFunc(
-		http.MethodPost,
-		"/v1/tokens/activation",
-		app.createActivationTokenHandler)
+	r.Post("/v1/tokens/activation",
+		createActivationTokenHandler)
 
-	router.HandlerFunc(
-		http.MethodPost,
-		"/v1/tokens/password-reset",
-		app.createPwdResetTokenHandler)
-
-	if app.config.metrics {
-		router.Handler(
-			http.MethodGet,
-			"/debug/vars",
-			expvar.Handler())
-	}
-	auMiddle := app.authenticate(router)
-	rlMiddle := app.rateLimit(auMiddle)
-	corsMiddle := app.enabledCORS(rlMiddle)
-	recoverMiddle := app.recoverPanic(corsMiddle)
-	return app.metrics(recoverMiddle)
+	r.Post("/v1/tokens/password-reset",
+		createPwdResetTokenHandler)
 }

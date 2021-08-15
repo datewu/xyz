@@ -3,19 +3,16 @@ package main
 import (
 	"context"
 	"database/sql"
-	"expvar"
 	"flag"
-	"os"
-	"runtime"
 	"strings"
-	"sync"
 	"time"
 
+	"github.com/datewu/gtea"
 	"github.com/datewu/xyz/internal/data"
-	"github.com/datewu/xyz/internal/jsonlog"
-	"github.com/datewu/xyz/internal/mailer"
 	_ "github.com/lib/pq"
 )
+
+var models data.Models
 
 type config struct {
 	port int
@@ -49,14 +46,6 @@ var (
 	buildTime string
 )
 
-type application struct {
-	config config
-	logger *jsonlog.Logger
-	models data.Models
-	mailer mailer.Mailer
-	wg     sync.WaitGroup
-}
-
 func main() {
 	var cfg config
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
@@ -87,43 +76,31 @@ func main() {
 
 	flag.Parse()
 
-	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
-	logger.PrintInfo("build info", map[string]string{
+	cnf := &gtea.Config{
+		Port:    cfg.port,
+		Env:     cfg.env,
+		Metrics: cfg.metrics,
+	}
+
+	app := gtea.NewApp(cnf)
+
+	app.Logger.PrintInfo("build info", map[string]string{
 		"version":   version,
 		"buildTime": buildTime,
 	})
 
 	db, err := openDB(cfg)
 	if err != nil {
-		logger.PrintFatal(err, nil)
+		app.Logger.PrintFatal(err, nil)
 	}
-	defer db.Close()
-	logger.PrintInfo("database connection pool established", nil)
+	models = data.NewModels(db)
+	app.SetDB(db)
+	app.Logger.PrintInfo("database connection pool established", nil)
 
-	if cfg.metrics {
-		expvar.NewString("version").Set(version)
-		expvar.Publish("goroutines", expvar.Func(func() interface{} {
-			return runtime.NumGoroutine()
-		}))
-		expvar.Publish("database", expvar.Func(func() interface{} {
-			return db.Stats()
-		}))
-		expvar.Publish("timestamp", expvar.Func(func() interface{} {
-			return time.Now().Unix()
-		}))
-	}
-	app := &application{
-		config: cfg,
-		logger: logger,
-		models: data.NewModels(db),
-		mailer: mailer.New(cfg.smtp.host,
-			cfg.smtp.port, cfg.smtp.username, cfg.smtp.password,
-			cfg.smtp.sender),
-	}
-
-	err = app.serve()
+	routes := setRoutes()
+	err = app.Serve(routes)
 	if err != nil {
-		app.logger.PrintFatal(err, nil)
+		app.Logger.PrintFatal(err, nil)
 	}
 }
 
